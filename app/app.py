@@ -24,6 +24,28 @@ def load_data():
 
 df = load_data()
 
+st.sidebar.header("Filters")
+
+store = st.sidebar.multiselect(
+    "Select Store",
+    options=df["store_location"].unique(),
+    default=df["store_location"].unique()
+)
+
+product = st.sidebar.multiselect(
+    "Select Product",
+    options=df["product_type"].unique(),
+    default=df["product_type"].unique()
+)
+
+df = df[
+    (df["store_location"].isin(store)) &
+    (df["product_type"].isin(product))
+]
+
+
+
+
 # -------------------------
 # KPI METRICS
 # -------------------------
@@ -104,9 +126,25 @@ st.plotly_chart(fig_store, use_container_width=True)
 # -------------------------
 st.subheader("📌 Key Insights")
 
-st.markdown("""
-- Peak hours highlight when staffing should be optimized.
-- A few product types drive most of the revenue (focus on best sellers).
-- Weekend vs weekday differences can guide promotions.
-- Store-level performance helps identify high and low-performing locations.
+peak_hour = hourly_sales.loc[hourly_sales["revenue"].idxmax(), "hour"]
+peak_revenue = hourly_sales["revenue"].max()
+
+best_product = top_products.iloc[0]["product_type"]
+best_product_rev = top_products.iloc[0]["revenue"]
+
+st.subheader("📌 Key Insights")
+
+st.markdown(f"""
+- Peak sales occur at **{peak_hour}:00**, generating **${peak_revenue:,.0f}**.
+- Top product is **{best_product}**, contributing **${best_product_rev:,.0f}**.
+- Revenue concentration suggests opportunity to promote lower-performing products.
+- Consider boosting afternoon sales with targeted promotions.
 """)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.plotly_chart(fig_hour, use_container_width=True)
+
+with col2:
+    st.plotly_chart(fig_daytype, use_container_width=True)
