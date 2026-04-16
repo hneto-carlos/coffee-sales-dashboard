@@ -43,6 +43,16 @@ df = df[
     (df["product_type"].isin(product))
 ]
 
+date_range = st.sidebar.date_input(
+    "Select Date Range",
+    [df["transaction_date"].min(), df["transaction_date"].max()]
+)
+
+df = df[
+    (df["transaction_date"] >= pd.to_datetime(date_range[0])) &
+    (df["transaction_date"] <= pd.to_datetime(date_range[1]))
+]
+
 
 # -------------------------
 # KPI METRICS
