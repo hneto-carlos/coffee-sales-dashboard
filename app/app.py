@@ -44,8 +44,6 @@ df = df[
 ]
 
 
-
-
 # -------------------------
 # KPI METRICS
 # -------------------------
@@ -62,14 +60,35 @@ col3.metric("Avg Order Value", f"${avg_order:.2f}")
 col4.metric("Top Product", top_product)
 
 # -------------------------
-# SALES BY HOUR
+# PREPARE DATA FOR CHARTS
 # -------------------------
-st.subheader("⏰ Sales by Hour")
 
+# Sales by Hour
 hourly_sales = df.groupby("hour")["revenue"].sum().reset_index()
 fig_hour = px.line(hourly_sales, x="hour", y="revenue", markers=True)
 
-st.plotly_chart(fig_hour, use_container_width=True)
+# Weekday vs Weekend
+df["day_type"] = df["day"].apply(
+    lambda x: "Weekend" if x in ["Saturday", "Sunday"] else "Weekday"
+)
+
+day_type_sales = df.groupby("day_type")["revenue"].sum().reset_index()
+fig_daytype = px.bar(day_type_sales, x="day_type", y="revenue")
+
+# -------------------------
+# SALES OVERVIEW
+# -------------------------
+st.subheader("⏰ Sales Overview")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("**Sales by Hour**")
+    st.plotly_chart(fig_hour, use_container_width=True)
+
+with col2:
+    st.markdown("**Weekday vs Weekend**")
+    st.plotly_chart(fig_daytype, use_container_width=True)
 
 # -------------------------
 # TOP PRODUCTS
@@ -97,19 +116,6 @@ fig_trend = px.line(daily_sales, x="transaction_date", y="revenue")
 
 st.plotly_chart(fig_trend, use_container_width=True)
 
-# -------------------------
-# WEEKDAY VS WEEKEND
-# -------------------------
-st.subheader("📆 Weekday vs Weekend")
-
-df["day_type"] = df["day"].apply(
-    lambda x: "Weekend" if x in ["Saturday", "Sunday"] else "Weekday"
-)
-
-day_type_sales = df.groupby("day_type")["revenue"].sum().reset_index()
-fig_daytype = px.bar(day_type_sales, x="day_type", y="revenue")
-
-st.plotly_chart(fig_daytype, use_container_width=True)
 
 # -------------------------
 # STORE PERFORMANCE (BONUS 🔥)
@@ -124,7 +130,6 @@ st.plotly_chart(fig_store, use_container_width=True)
 # -------------------------
 # INSIGHTS
 # -------------------------
-st.subheader("📌 Key Insights")
 
 peak_hour = hourly_sales.loc[hourly_sales["revenue"].idxmax(), "hour"]
 peak_revenue = hourly_sales["revenue"].max()
@@ -140,11 +145,3 @@ st.markdown(f"""
 - Revenue concentration suggests opportunity to promote lower-performing products.
 - Consider boosting afternoon sales with targeted promotions.
 """)
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.plotly_chart(fig_hour, use_container_width=True)
-
-with col2:
-    st.plotly_chart(fig_daytype, use_container_width=True)
